@@ -14,26 +14,54 @@
     tools:showIn="@layout/activity_main">
 
 
+    <TextView
+        android:id="@+id/tvPage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:textSize="18sp"
+        android:textStyle="normal|bold"
+        android:paddingLeft="@dimen/activity_vertical_margin" />
+
+
+    <TextView
+        android:id="@+id/tvPostNum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:textSize="18sp"
+        android:textStyle="normal|bold"
+        android:paddingRight="@dimen/activity_vertical_margin" />
+
+    <TextView
+        android:id="@+id/tvExternal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/tvPage"
+        android:paddingLeft="@dimen/activity_vertical_margin" />
 
     <TextView
         android:id="@+id/tvDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"/>
-    <TextView
-        android:id="@+id/tvExternal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toLeftOf="@+id/tvDate"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"/>
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/tvPostNum"
+        android:paddingRight="@dimen/activity_vertical_margin" />
+
+
     <TextView
         android:id="@+id/tvContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorContent"
         android:layout_below="@+id/tvDate"
+        android:background="@color/colorContent"
         android:padding="@dimen/activity_vertical_margin"
         android:textSize="20sp" />
 </RelativeLayout>

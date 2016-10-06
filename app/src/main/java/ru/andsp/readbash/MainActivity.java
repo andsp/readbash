@@ -10,55 +10,63 @@ import android.view.View;
 import android.widget.TextView;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String POST_KEY = "POST_KEY";
+    private static final String PAGE_KEY = "PAGE_KEY";
     private TextView tvContent;
-
     private TextView tvDate;
-
     private TextView tvExternal;
+    private TextView tvPage;
+    private TextView tvPostNum;
 
-    private LinkedList<Post> posts;
+    private LoadAsync loadAsync;
 
-    LoadAsync loadAsync;
+    private PostBook book;
+
+    private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (savedInstanceState != null) {
-            posts = (LinkedList<Post>) savedInstanceState.getSerializable(POST_KEY);
-        }
+        initBook(savedInstanceState);
         setContentView(R.layout.activity_main);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(this);
         tvContent = (TextView) findViewById(R.id.tvContent);
         tvDate = (TextView) findViewById(R.id.tvDate);
         tvExternal = (TextView) findViewById(R.id.tvExternal);
-
-        startRead();
-    }
-
-    private void startRead() {
-        if (posts == null || posts.isEmpty()) {
-            posts = new LinkedList<>();
-            int page = getPage();
-            if (page > 1)
-                setPage(page - 1);
-        }
+        tvPage = (TextView) findViewById(R.id.tvPage);
+        tvPostNum = (TextView) findViewById(R.id.tvPostNum);
         showNext();
     }
 
+    private void initBook(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            book = (PostBook) savedInstanceState.getSerializable(POST_KEY);
+        } else {
+            book = new PostBook();
+        }
+    }
+
     private void showNext() {
-        if (posts.isEmpty()) {
+        if (book.hasNext()) {
+            showPost(book);
+        } else {
+            loadData();
+        }
+    }
+
+    private void loadData() {
+        if (loadAsync == null) {
+            fab.setEnabled(false);
             loadAsync = new LoadAsync();
             loadAsync.execute(getPage());
             loadAsync = null;
-        } else {
-            showPost(posts.removeLast());
         }
     }
 
@@ -67,20 +75,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         showNext();
     }
 
-    private int getPage() {
+    public Integer getPage() {
         SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        return sharedPref.getInt(getString(R.string.current_page), 1);
+        return sharedPref.getInt(PAGE_KEY, 1);
     }
 
-    private void setPage(int page) {
+    public void setPage(Integer page) {
         SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putInt(getString(R.string.current_page), page);
+        editor.putInt(PAGE_KEY, page);
         editor.apply();
     }
 
 
-    private void showPost(Post post) {
+    private void showPost(PostBook book) {
+        Post post = book.next();
+        tvPage.setText(String.format(Locale.getDefault(), "%d", getPage()));
+        tvPostNum.setText(book.positionLaBel());
         if (post != null) {
             tvContent.setText(post.getContent());
             tvDate.setText(post.getDate());
@@ -90,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putSerializable(POST_KEY, posts);
+        outState.putSerializable(POST_KEY, book);
         super.onSaveInstanceState(outState);
     }
 
@@ -104,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public class LoadAsync extends AsyncTask<Integer, Void, Void> {
 
-        private LinkedList<Post> current;
+        private List<Post> current;
         private Integer page;
 
         @Override
@@ -114,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             try {
                 current = source.getPosts(page);
             } catch (IOException e) {
-                current = new LinkedList<>();
+                current = new ArrayList<>();
             }
             return null;
         }
@@ -122,17 +133,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            if (!current.isEmpty()) {
+            book.setPosts(current);
+            if (book.hasNext()) {
                 setPage(page + 1);
-                posts = current;
-                showPost(posts.removeLast());
-            } else {
-                Post post = new Post();
-                post.setExternal(0);
-                post.setDate("00.00.0000 00:00");
-                post.setContent("Ошибка получения новй порции постов. Проверьте соединение с интернетом.");
-                showPost(post);
+                showPost(book);
             }
+            fab.setEnabled(true);
         }
     }
 }

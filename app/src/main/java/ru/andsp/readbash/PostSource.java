@@ -7,7 +7,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 class PostSource {
@@ -19,8 +20,8 @@ class PostSource {
         return String.format(Locale.getDefault(), URL_SOURCE, page);
     }
 
-    LinkedList<Post> getPosts(int page) throws IOException {
-        LinkedList<Post> posts = new LinkedList<>();
+    List<Post> getPosts(int page) throws IOException {
+        List<Post> posts = new ArrayList<>();
         String url = getUrl(page);
         Document doc = Jsoup.connect(url).get();
         doc.select("br").append("n1");
@@ -29,7 +30,7 @@ class PostSource {
             Elements text = element.getElementsByClass("text");
             if (!text.isEmpty()) {
                 Post post = new Post();
-                post.setContent(text.first().text().replaceAll("n1","\n"));
+                post.setContent(text.first().text().replaceAll("n1", "\n"));
                 Elements id = element.select("a.id");
                 if (!id.isEmpty()) {
                     post.setExternal(Integer.valueOf(id.first().text().replace("#", "")));
@@ -38,7 +39,7 @@ class PostSource {
                 if (!date.isEmpty()) {
                     post.setDate(date.first().text());
                 }
-                posts.addLast(post);
+                posts.add(post);
             }
         }
         return posts;
